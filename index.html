@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Jobs Dubai — Sreeja's Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#1B3A5C;--primary-light:#2E75B6;--accent:#E8913A;
+  --bg:#F0F2F5;--card:#FFF;--text:#1a1a2e;--text-light:#555;
+  --green:#28a745;--yellow:#f0ad4e;--red:#dc3545;
+  --shadow:0 2px 12px rgba(0,0,0,.08);
+}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+a{text-decoration:none;color:inherit}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d2137 100%);color:#fff;padding:20px 30px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.header-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.5rem;font-weight:700;letter-spacing:.5px}
+.header h1 span{color:var(--accent)}
+.header-subtitle{font-size:.82rem;opacity:.75;margin-top:2px}
+.header-actions{display:flex;gap:10px;align-items:center}
+.btn{padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:#d17e2e;transform:translateY(-1px)}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4)}.btn-outline:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+.btn-green{background:#25D366;color:#fff}.btn-green:hover{background:#1da851}
+.btn-sm{padding:6px 12px;font-size:.78rem}
+
+/* SETTINGS PANEL */
+.settings-panel{display:none;background:rgba(0,0,0,.25);padding:16px 30px;border-top:1px solid rgba(255,255,255,.1)}
+.settings-panel.show{display:block}
+.settings-panel label{color:rgba(255,255,255,.8);font-size:.82rem;display:block;margin-bottom:4px}
+.settings-panel input{padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;width:100%;max-width:500px;font-size:.85rem}
+.settings-panel input::placeholder{color:rgba(255,255,255,.4)}
+.settings-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.settings-hint{color:rgba(255,255,255,.5);font-size:.75rem;margin-top:4px}
+
+/* STATS BAR */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;padding:20px 30px;background:#fff;border-bottom:1px solid #e8e8e8}
+.stat-card{text-align:center;padding:12px}
+.stat-number{font-size:1.8rem;font-weight:800;color:var(--primary)}
+.stat-number.green{color:var(--green)}.stat-number.accent{color:var(--accent)}
+.stat-label{font-size:.75rem;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* FILTER BAR */
+.filter-bar{padding:16px 30px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filter-tab{padding:7px 16px;border-radius:20px;border:1.5px solid #ddd;background:#fff;cursor:pointer;font-size:.82rem;font-weight:500;transition:all .2s;color:var(--text-light)}
+.filter-tab:hover{border-color:var(--primary-light);color:var(--primary-light)}
+.filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.search-box{margin-left:auto;position:relative}
+.search-box input{padding:8px 14px 8px 36px;border:1.5px solid #ddd;border-radius:20px;font-size:.85rem;width:240px;transition:border-color .2s}
+.search-box input:focus{outline:none;border-color:var(--primary-light)}
+.search-box::before{content:"🔍";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.8rem}
+.refresh-info{font-size:.75rem;color:var(--text-light);display:flex;align-items:center;gap:6px}
+.refresh-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* PORTAL LINKS */
+.portals-section{padding:20px 30px}
+.portals-section h3{font-size:.95rem;color:var(--text-light);margin-bottom:12px;font-weight:600}
+.portal-links{display:flex;gap:10px;flex-wrap:wrap}
+.portal-link{padding:8px 16px;border-radius:8px;background:#fff;border:1.5px solid #e0e0e0;font-size:.82rem;font-weight:500;transition:all .2s;display:inline-flex;align-items:center;gap:6px;color:var(--text)}
+.portal-link:hover{border-color:var(--primary-light);color:var(--primary-light);transform:translateY(-1px);box-shadow:var(--shadow)}
+.portal-link .badge{background:var(--primary-light);color:#fff;font-size:.65rem;padding:2px 6px;border-radius:10px}
+
+/* JOB GRID */
+.jobs-container{padding:20px 30px}
+.jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+
+/* JOB CARD */
+.job-card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow);border:1px solid #eee;transition:all .25s;position:relative;display:flex;flex-direction:column}
+.job-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.12);border-color:var(--primary-light)}
+.job-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.job-title{font-size:1rem;font-weight:700;color:var(--primary);line-height:1.3}
+.match-badge{padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.match-high{background:#e6f4ea;color:#1e7e34}.match-med{background:#fff3cd;color:#856404}.match-low{background:#f8f9fa;color:#666}
+.job-company{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px}
+.job-meta{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;font-size:.78rem;color:var(--text-light)}
+.job-meta span{display:inline-flex;align-items:center;gap:3px}
+.job-skills{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+.skill-tag{padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:500;background:#EDF2F7;color:#4A5568}
+.skill-tag.match{background:#E6F4EA;color:#1E7E34;font-weight:600}
+.job-footer{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;border-top:1px solid #f0f0f0}
+.job-source{font-size:.72rem;color:var(--text-light);background:#f5f5f5;padding:3px 8px;border-radius:4px}
+.apply-btn{padding:6px 16px;background:var(--primary);color:#fff;border-radius:6px;font-size:.8rem;font-weight:600;transition:all .2s;border:none;cursor:pointer}
+.apply-btn:hover{background:var(--primary-light);transform:translateY(-1px)}
+
+/* WHATSAPP FLOATING */
+.whatsapp-float{position:fixed;bottom:24px;right:24px;z-index:200}
+.whatsapp-btn{width:60px;height:60px;border-radius:50%;background:#25D366;color:#fff;border:none;cursor:pointer;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:all .3s}
+.whatsapp-btn:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(37,211,102,.5)}
+.whatsapp-tooltip{position:absolute;bottom:70px;right:0;background:#333;color:#fff;padding:8px 14px;border-radius:8px;font-size:.78rem;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none}
+.whatsapp-float:hover .whatsapp-tooltip{opacity:1}
+
+/* LOADING & EMPTY */
+.loading{text-align:center;padding:60px 20px;color:var(--text-light)}
+.loading-spinner{width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-light)}
+.empty-state .icon{font-size:3rem;margin-bottom:12px}
+.no-api-notice{background:linear-gradient(135deg,#FFF7E6,#FFF2CC);border:1px solid #F0D78C;border-radius:12px;padding:24px;margin:20px 30px;text-align:center}
+.no-api-notice h3{color:#8B6914;margin-bottom:8px}
+.no-api-notice p{color:#7A6320;font-size:.88rem;line-height:1.6}
+.no-api-notice a{color:var(--primary-light);font-weight:600;text-decoration:underline}
+
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:30px;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h2{font-size:1.2rem;margin-bottom:16px;color:var(--primary)}
+.modal p{font-size:.88rem;color:var(--text-light);line-height:1.6;margin-bottom:16px}
+.modal ol{font-size:.85rem;color:var(--text);margin:0 0 20px 20px;line-height:2}
+.modal ol a{color:var(--primary-light);font-weight:600}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .header{padding:14px 16px}
+  .header h1{font-size:1.15rem}
+  .stats-bar,.filter-bar,.portals-section,.jobs-container,.no-api-notice{padding-left:16px;padding-right:16px}
+  .jobs-grid{grid-template-columns:1fr}
+  .search-box{margin-left:0;width:100%}
+  .search-box input{width:100%}
+  .settings-panel{padding:12px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>CRM Jobs <span>Dubai</span> — Live Dashboard</h1>
+      <div class="header-subtitle">Personalized for Sreeja Narikode | Auto-refreshes every hour</div>
+    </div>
+    <div class="header-actions">
+      <div class="refresh-info">
+        <span class="refresh-dot"></span>
+        <span id="refreshTimer">Next refresh in 60:00</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="fetchJobs()">↻ Refresh Now</button>
+      <button class="btn btn-outline btn-sm" id="settingsToggle" onclick="toggleSettings()">⚙ API Key</button>
+    </div>
+  </div>
+  <div class="settings-panel" id="settingsPanel">
+    <label for="apiKeyInput">RapidAPI Key (JSearch API — free tier: 500 req/month)</label>
+    <div class="settings-row">
+      <input type="password" id="apiKeyInput" placeholder="Paste your RapidAPI key here..." value="">
+      <button class="btn btn-accent btn-sm" onclick="saveApiKey()">Save & Fetch Jobs</button>
+      <button class="btn btn-outline btn-sm" onclick="showSetupGuide()">Setup Guide</button>
+    </div>
+    <div class="settings-hint">Get a free key at rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch → Subscribe (free) → Copy key</div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-number" id="statTotal">—</div><div class="stat-label">Total Jobs Found</div></div>
+  <div class="stat-card"><div class="stat-number green" id="statHigh">—</div><div class="stat-label">High Match</div></div>
+  <div class="stat-card"><div class="stat-number accent" id="statMed">—</div><div class="stat-label">Medium Match</div></div>
+  <div class="stat-card"><div class="stat-number" id="statNew">—</div><div class="stat-label">Posted This Week</div></div>
+  <div class="stat-card"><div class="stat-number" id="statPlatforms">6</div><div class="stat-label">Portals Tracked</div></div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <button class="filter-tab active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+  <button class="filter-tab" data-filter="salesforce" onclick="setFilter(this,'salesforce')">Salesforce</button>
+  <button class="filter-tab" data-filter="zoho" onclick="setFilter(this,'zoho')">Zoho</button>
+  <button class="filter-tab" data-filter="hubspot" onclick="setFilter(this,'hubspot')">HubSpot</button>
+  <button class="filter-tab" data-filter="dynamics" onclick="setFilter(this,'dynamics')">Dynamics 365</button>
+  <button class="filter-tab" data-filter="general" onclick="setFilter(this,'general')">General CRM</button>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search jobs..." oninput="filterJobs()">
+  </div>
+</div>
+
+<!-- DIRECT PORTAL LINKS -->
+<div class="portals-section">
+  <h3>Browse Directly on Job Portals</h3>
+  <div class="portal-links">
+    <a class="portal-link" href="https://ae.indeed.com/jobs?q=CRM&l=Dubai" target="_blank">Indeed UAE <span class="badge">2000+</span></a>
+    <a class="portal-link" href="https://www.bayt.com/en/uae/jobs/crm-jobs-in-dubai/" target="_blank">Bayt.com <span class="badge">500+</span></a>
+    <a class="portal-link" href="https://www.linkedin.com/jobs/search/?keywords=CRM&location=Dubai" target="_blank">LinkedIn <span class="badge">500+</span></a>
+    <a class="portal-link" href="https://www.naukrigulf.com/crm-jobs-in-dubai" target="_blank">NaukriGulf <span class="badge">300+</span></a>
+    <a class="portal-link" href="https://www.glassdoor.com/Job/dubai-crm-jobs-SRCH_IL.0,5_IC2204498_KO6,9.htm" target="_blank">Glassdoor <span class="badge">200+</span></a>
+    <a class="portal-link" href="https://www.gulftalent.com/uae/jobs/title/crm" target="_blank">GulfTalent</a>
+    <a class="portal-link" href="https://ae.indeed.com/jobs?q=zoho+CRM&l=Dubai" target="_blank">Indeed — Zoho</a>
+    <a class="portal-link" href="https://ae.indeed.com/jobs?q=salesforce&l=Dubai" target="_blank">Indeed — Salesforce</a>
+    <a class="portal-link" href="https://ae.indeed.com/jobs?q=hubspot&l=Dubai" target="_blank">Indeed — HubSpot</a>
+  </div>
+</div>
+
+<!-- JOBS CONTAINER -->
+<div class="jobs-container">
+  <div id="jobsArea">
+    <div class="no-api-notice" id="noApiNotice">
+      <h3>Set Up Live Job Feed (2 minutes)</h3>
+      <p>To see live job listings from Indeed, LinkedIn & Glassdoor right here, add a free API key.<br>
+      Click <strong>⚙ API Key</strong> above, or <a href="javascript:void(0)" onclick="showSetupGuide()">view the setup guide</a>.<br><br>
+      Meanwhile, use the <strong>portal links above</strong> to browse CRM jobs in Dubai directly!</p>
+    </div>
+  </div>
+  <div class="jobs-grid" id="jobsGrid"></div>
+</div>
+
+<!-- WHATSAPP FLOATING BUTTON -->
+<div class="whatsapp-float">
+  <div class="whatsapp-tooltip">Share job alerts via WhatsApp</div>
+  <button class="whatsapp-btn" onclick="shareWhatsApp()" title="Share via WhatsApp">
+    <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </button>
+</div>
+
+<!-- SETUP GUIDE MODAL -->
+<div class="modal-overlay" id="setupModal">
+  <div class="modal">
+    <h2>Free API Setup Guide (2 minutes)</h2>
+    <p>The JSearch API aggregates jobs from Indeed, LinkedIn, Glassdoor and more. The free tier gives you 500 requests/month — more than enough for hourly refreshes.</p>
+    <ol>
+      <li>Go to <a href="https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch" target="_blank">JSearch on RapidAPI</a></li>
+      <li>Sign up for a free RapidAPI account (no credit card needed)</li>
+      <li>Click <strong>"Subscribe to Test"</strong> and choose the <strong>Basic (Free)</strong> plan</li>
+      <li>Copy your <strong>X-RapidAPI-Key</strong> from the code snippets panel</li>
+      <li>Paste it in the <strong>⚙ API Key</strong> field above and click Save</li>
+    </ol>
+    <button class="btn btn-accent" onclick="closeSetupGuide()" style="width:100%">Got it!</button>
+  </div>
+</div>
+
+<script>
+// ===== CONFIGURATION =====
+const SREEJA_SKILLS = [
+  'zoho','zoho crm','salesforce','hubspot','crm','marketing automation',
+  'api','rest api','webhook','zapier','make','integromat','agile','scrum',
+  'jira','python','data analytics','power bi','excel','automation',
+  'active campaign','twilio','whatsapp','email marketing','customer journey',
+  'workflow','dashboard','reporting','training','onboarding','system analyst',
+  'deluge','sql','javascript','ai','machine learning','prompt engineering',
+  'digital marketing','selenium','testing','qa'
+];
+
+const CRM_QUERIES = [
+  'CRM Dubai','Zoho CRM Dubai','Salesforce Dubai','HubSpot Dubai',
+  'CRM Manager Dubai','CRM analyst Dubai','CRM consultant Dubai',
+  'Marketing automation Dubai'
+];
+
+const PLATFORM_KEYWORDS = {
+  salesforce: ['salesforce','sfdc','apex','visualforce','lwc','sales cloud','service cloud','trailhead'],
+  zoho: ['zoho','deluge','zoho crm','zoho one','zoho people'],
+  hubspot: ['hubspot','hub spot','inbound marketing','hubspot crm'],
+  dynamics: ['dynamics 365','dynamics365','microsoft dynamics','d365','power platform'],
+  general: ['crm manager','crm analyst','crm specialist','crm administrator','crm consultant','customer relationship']
+};
+
+let allJobs = [];
+let currentFilter = 'all';
+let refreshInterval;
+let countdownSeconds = 3600;
+
+// ===== API KEY MANAGEMENT =====
+// *** PASTE YOUR RAPIDAPI KEY BELOW (between the quotes) ***
+const EMBEDDED_API_KEY = '7fdb7cf265msh050ad1e41a245c7p1927fajsn15a6475fb005';
+// If you set the key above, it works for everyone who views this page.
+// Otherwise, each visitor can enter their own key via the ⚙ button.
+
+function getApiKey() {
+  if (EMBEDDED_API_KEY) return EMBEDDED_API_KEY;
+  try { return localStorage.getItem('jsearch_api_key') || ''; } catch(e) { return ''; }
+}
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) { alert('Please enter an API key'); return; }
+  try { localStorage.setItem('jsearch_api_key', key); } catch(e) {}
+  toggleSettings();
+  fetchJobs();
+}
+
+// ===== UI TOGGLES =====
+function toggleSettings() {
+  document.getElementById('settingsPanel').classList.toggle('show');
+}
+function showSetupGuide() {
+  document.getElementById('setupModal').classList.add('show');
+}
+function closeSetupGuide() {
+  document.getElementById('setupModal').classList.remove('show');
+}
+document.getElementById('setupModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSetupGuide();
+});
+
+// ===== SKILL MATCHING =====
+function scoreJob(job) {
+  const text = `${job.title} ${job.description} ${job.company}`.toLowerCase();
+  let score = 0;
+  let matched = [];
+  SREEJA_SKILLS.forEach(skill => {
+    if (text.includes(skill.toLowerCase())) {
+      score += skill.length > 4 ? 2 : 1;
+      matched.push(skill);
+    }
+  });
+  if (score >= 8) return { level: 'high', label: 'High Match', matched };
+  if (score >= 4) return { level: 'med', label: 'Medium Match', matched };
+  return { level: 'low', label: 'Match', matched };
+}
+
+function detectPlatform(job) {
+  const text = `${job.title} ${job.description}`.toLowerCase();
+  for (const [platform, keywords] of Object.entries(PLATFORM_KEYWORDS)) {
+    if (keywords.some(k => text.includes(k))) return platform;
+  }
+  return 'general';
+}
+
+// ===== FETCH JOBS =====
+async function fetchJobs() {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    document.getElementById('noApiNotice').style.display = 'block';
+    document.getElementById('jobsGrid').innerHTML = '';
+    updateStats([]);
+    return;
+  }
+
+  document.getElementById('noApiNotice').style.display = 'none';
+  document.getElementById('jobsGrid').innerHTML = `
+    <div class="loading" style="grid-column:1/-1">
+      <div class="loading-spinner"></div>
+      <p>Fetching CRM jobs in Dubai...</p>
+    </div>`;
+
+  allJobs = [];
+  const seen = new Set();
+  const queries = ['CRM Dubai UAE', 'Salesforce Dubai', 'Zoho CRM Dubai', 'HubSpot Dubai'];
+
+  for (const query of queries) {
+    try {
+      const resp = await fetch(
+        `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&num_pages=2&date_posted=month`,
+        { headers: { 'X-RapidAPI-Key': apiKey, 'X-RapidAPI-Host': 'jsearch.p.rapidapi.com' } }
+      );
+      if (!resp.ok) {
+        if (resp.status === 403 || resp.status === 401) {
+          document.getElementById('jobsGrid').innerHTML = `
+            <div class="no-api-notice" style="grid-column:1/-1">
+              <h3>Invalid API Key</h3>
+              <p>The API key doesn't seem to work. Please check it and try again.<br>
+              Click <strong>⚙ API Key</strong> above to update.</p>
+            </div>`;
+          return;
+        }
+        continue;
+      }
+      const data = await resp.json();
+      if (data.data) {
+        data.data.forEach(j => {
+          const id = `${j.job_title}-${j.employer_name}`.toLowerCase().replace(/\s/g,'');
+          if (!seen.has(id)) {
+            seen.add(id);
+            allJobs.push({
+              title: j.job_title || 'Untitled',
+              company: j.employer_name || 'Company',
+              location: j.job_city ? `${j.job_city}, ${j.job_country}` : (j.job_country || 'Dubai, UAE'),
+              salary: j.job_min_salary && j.job_max_salary
+                ? `${j.job_salary_currency || 'AED'} ${Math.round(j.job_min_salary).toLocaleString()} - ${Math.round(j.job_max_salary).toLocaleString()}`
+                : (j.job_salary_period ? `${j.job_salary_currency || ''} ${j.job_salary_period}` : ''),
+              date: j.job_posted_at_datetime_utc ? new Date(j.job_posted_at_datetime_utc) : new Date(),
+              description: (j.job_description || '').substring(0, 500),
+              url: j.job_apply_link || j.job_google_link || '#',
+              source: j.job_publisher || 'Job Portal',
+              employment_type: j.job_employment_type || '',
+              highlights: j.job_highlights?.Qualifications?.slice(0, 3) || []
+            });
+          }
+        });
+      }
+    } catch (err) {
+      console.log('Query failed:', query, err);
+    }
+  }
+
+  // Score and sort
+  allJobs.forEach(job => {
+    job.match = scoreJob(job);
+    job.platform = detectPlatform(job);
+  });
+  allJobs.sort((a, b) => {
+    const order = { high: 3, med: 2, low: 1 };
+    return (order[b.match.level] || 0) - (order[a.match.level] || 0);
+  });
+
+  renderJobs();
+  updateStats(allJobs);
+  resetCountdown();
+}
+
+// ===== RENDER =====
+function renderJobs() {
+  const grid = document.getElementById('jobsGrid');
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = allJobs;
+
+  if (currentFilter !== 'all') {
+    filtered = filtered.filter(j => j.platform === currentFilter);
+  }
+  if (search) {
+    filtered = filtered.filter(j =>
+      `${j.title} ${j.company} ${j.description}`.toLowerCase().includes(search)
+    );
+  }
+
+  if (filtered.length === 0 && allJobs.length > 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><p>No jobs match this filter. Try broadening your search.</p></div>`;
+    return;
+  }
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(job => {
+    const daysAgo = Math.floor((Date.now() - job.date.getTime()) / 86400000);
+    const dateStr = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo}d ago`;
+    const topSkills = [...new Set(job.match.matched)].slice(0, 5);
+
+    return `
+    <div class="job-card">
+      <div class="job-card-header">
+        <div class="job-title">${escapeHtml(job.title)}</div>
+        <span class="match-badge match-${job.match.level}">${job.match.label}</span>
+      </div>
+      <div class="job-company">${escapeHtml(job.company)}</div>
+      <div class="job-meta">
+        <span>📍 ${escapeHtml(job.location)}</span>
+        ${job.salary ? `<span>💰 ${escapeHtml(job.salary)}</span>` : ''}
+        <span>🕐 ${dateStr}</span>
+        ${job.employment_type ? `<span>📋 ${escapeHtml(job.employment_type)}</span>` : ''}
+      </div>
+      <div class="job-skills">
+        ${topSkills.map(s => `<span class="skill-tag match">${escapeHtml(s)}</span>`).join('')}
+      </div>
+      <div class="job-footer">
+        <span class="job-source">${escapeHtml(job.source)}</span>
+        <a href="${escapeHtml(job.url)}" target="_blank" class="apply-btn">Apply →</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function updateStats(jobs) {
+  const high = jobs.filter(j => j.match.level === 'high').length;
+  const med = jobs.filter(j => j.match.level === 'med').length;
+  const week = jobs.filter(j => (Date.now() - j.date.getTime()) < 7 * 86400000).length;
+  document.getElementById('statTotal').textContent = jobs.length || '—';
+  document.getElementById('statHigh').textContent = high || '—';
+  document.getElementById('statMed').textContent = med || '—';
+  document.getElementById('statNew').textContent = week || '—';
+}
+
+// ===== FILTERS =====
+function setFilter(el, filter) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = filter;
+  renderJobs();
+}
+function filterJobs() { renderJobs(); }
+
+// ===== AUTO REFRESH =====
+function resetCountdown() {
+  countdownSeconds = 3600;
+  if (refreshInterval) clearInterval(refreshInterval);
+  refreshInterval = setInterval(() => {
+    countdownSeconds--;
+    const min = Math.floor(countdownSeconds / 60);
+    const sec = countdownSeconds % 60;
+    document.getElementById('refreshTimer').textContent = `Next refresh in ${min}:${String(sec).padStart(2,'0')}`;
+    if (countdownSeconds <= 0) {
+      fetchJobs();
+    }
+  }, 1000);
+}
+
+// ===== WHATSAPP SHARE =====
+function shareWhatsApp() {
+  const highJobs = allJobs.filter(j => j.match.level === 'high').slice(0, 5);
+  let msg = `🔔 *CRM Job Alert — Dubai*\n\n`;
+  msg += `Found *${allJobs.length} CRM jobs* in Dubai!\n`;
+  msg += `✅ ${allJobs.filter(j=>j.match.level==='high').length} High Match for my profile\n\n`;
+  if (highJobs.length) {
+    msg += `*Top Matches:*\n`;
+    highJobs.forEach((j, i) => {
+      msg += `${i+1}. ${j.title} — ${j.company}\n`;
+    });
+    msg += `\n`;
+  }
+  msg += `🔗 Apply on: ae.indeed.com, bayt.com, linkedin.com\n`;
+  msg += `📅 Updated: ${new Date().toLocaleString()}\n`;
+  msg += `\n_Sent from my CRM Job Dashboard_`;
+
+  const encoded = encodeURIComponent(msg);
+  window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = getApiKey();
+  if (saved) {
+    document.getElementById('apiKeyInput').value = saved;
+    fetchJobs();
+  } else {
+    updateStats([]);
+    resetCountdown();
+  }
+});
+</script>
+</body>
+</html>
