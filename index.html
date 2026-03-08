@@ -114,6 +114,40 @@ a{text-decoration:none;color:inherit}
 .modal ol{font-size:.85rem;color:var(--text);margin:0 0 20px 20px;line-height:2}
 .modal ol a{color:var(--primary-light);font-weight:600}
 
+/* RESUME BUILDER MODAL */
+.resume-modal{max-width:720px}
+.resume-modal h2{display:flex;align-items:center;gap:8px}
+.resume-modal h2 .icon{font-size:1.4rem}
+.resume-tabs{display:flex;gap:8px;margin-bottom:16px}
+.resume-tab{padding:6px 14px;border-radius:8px;border:1.5px solid #ddd;background:#fff;cursor:pointer;font-size:.82rem;font-weight:500;transition:all .2s}
+.resume-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.resume-textarea{width:100%;min-height:180px;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:.85rem;font-family:inherit;resize:vertical;line-height:1.5;transition:border-color .2s}
+.resume-textarea:focus{outline:none;border-color:var(--primary-light)}
+.resume-textarea::placeholder{color:#999}
+.resume-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.resume-status{margin-top:12px;padding:12px;border-radius:8px;font-size:.85rem;display:none}
+.resume-status.show{display:block}
+.resume-status.loading{background:#EDF2F7;color:#4A5568}
+.resume-status.success{background:#E6F4EA;color:#1E7E34}
+.resume-status.error{background:#FCE4EC;color:#C00000}
+.resume-progress{display:flex;align-items:center;gap:10px}
+.resume-progress .spinner{width:18px;height:18px;border:2.5px solid #ccc;border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+.claude-key-section{background:#F7F8FA;border:1px solid #E8E8E8;border-radius:10px;padding:14px;margin-bottom:14px}
+.claude-key-section label{font-size:.82rem;font-weight:600;color:var(--text);display:block;margin-bottom:6px}
+.claude-key-section input{width:100%;padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.85rem}
+.claude-key-section .hint{font-size:.72rem;color:var(--text-light);margin-top:4px}
+.paste-jd-section{margin-bottom:10px}
+.paste-jd-section label{font-size:.85rem;font-weight:600;color:var(--text);display:block;margin-bottom:6px}
+.tailor-btn{padding:6px 14px;background:var(--accent);color:#fff;border-radius:6px;font-size:.78rem;font-weight:600;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.tailor-btn:hover{background:#d17e2e;transform:translateY(-1px)}
+.download-docx-btn{padding:10px 24px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;display:none;align-items:center;gap:6px;transition:all .2s}
+.download-docx-btn.show{display:inline-flex}
+.download-docx-btn:hover{background:#218838;transform:translateY(-1px)}
+.resume-preview{max-height:300px;overflow-y:auto;background:#FAFAFA;border:1px solid #eee;border-radius:8px;padding:16px;margin-top:12px;font-size:.84rem;line-height:1.6;display:none;white-space:pre-wrap;font-family:'Segoe UI',sans-serif}
+.resume-preview.show{display:block}
+.resume-preview h4{color:var(--primary);margin:10px 0 4px;font-size:.9rem}
+.resume-preview ul{margin-left:18px}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .header{padding:14px 16px}
@@ -214,6 +248,34 @@ a{text-decoration:none;color:inherit}
   </button>
 </div>
 
+<!-- ATS RESUME BUILDER MODAL -->
+<div class="modal-overlay" id="resumeModal">
+  <div class="modal resume-modal">
+    <h2><span class="icon">📄</span> ATS Resume Builder</h2>
+    <p>Paste a job description below. Claude AI will tailor your resume to match the job requirements, optimize it for ATS systems, and generate a downloadable Word document.</p>
+
+    <div class="claude-key-section">
+      <label for="claudeKeyInput">Anthropic API Key</label>
+      <input type="password" id="claudeKeyInput" placeholder="sk-ant-..." value="">
+      <div class="hint">Get a free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--primary-light)">console.anthropic.com</a> → API Keys → Create Key. Free tier: $5 credit.</div>
+    </div>
+
+    <div class="paste-jd-section">
+      <label>Job Description <span id="resumeJobTitle" style="color:var(--primary-light);font-weight:400"></span></label>
+      <textarea class="resume-textarea" id="jobDescInput" placeholder="Paste the full job description here...&#10;&#10;Include: job title, company, responsibilities, required skills, qualifications, etc."></textarea>
+    </div>
+
+    <div class="resume-actions">
+      <button class="btn btn-accent" onclick="generateResume()" id="generateBtn">Generate ATS Resume</button>
+      <button class="btn btn-outline" onclick="closeResumeModal()" style="color:var(--text);border-color:#ddd">Cancel</button>
+      <button class="download-docx-btn" id="downloadBtn" onclick="downloadDocx()">Download .docx</button>
+    </div>
+
+    <div class="resume-status" id="resumeStatus"></div>
+    <div class="resume-preview" id="resumePreview"></div>
+  </div>
+</div>
+
 <!-- SETUP GUIDE MODAL -->
 <div class="modal-overlay" id="setupModal">
   <div class="modal">
@@ -230,6 +292,7 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/9.3.0/docx.min.js"></script>
 <script>
 // ===== CONFIGURATION =====
 const SREEJA_SKILLS = [
@@ -263,7 +326,7 @@ let countdownSeconds = 3600;
 
 // ===== API KEY MANAGEMENT =====
 // *** PASTE YOUR RAPIDAPI KEY BELOW (between the quotes) ***
-const EMBEDDED_API_KEY = '7fdb7cf265msh050ad1e41a245c7p1927fajsn15a6475fb005';
+const EMBEDDED_API_KEY = '';
 // If you set the key above, it works for everyone who views this page.
 // Otherwise, each visitor can enter their own key via the ⚙ button.
 
@@ -338,6 +401,13 @@ async function fetchJobs() {
   const seen = new Set();
   const queries = ['CRM Dubai UAE', 'Salesforce Dubai', 'Zoho CRM Dubai', 'HubSpot Dubai'];
 
+  // Block unreliable job sources (scrapers, paywalls, fake listings)
+  const BLOCKED_SOURCES = [
+    'bebee','be bee','jobrapido','jooble','talent.com','adzuna',
+    'ziprecruiter','careerjet','neuvoo','jobomas','learn4good',
+    'snagajob','recruit.net','jobleads'
+  ];
+
   for (const query of queries) {
     try {
       const resp = await fetch(
@@ -359,6 +429,12 @@ async function fetchJobs() {
       const data = await resp.json();
       if (data.data) {
         data.data.forEach(j => {
+          // Filter out blocked/unreliable sources
+          const publisher = (j.job_publisher || '').toLowerCase();
+          const applyLink = (j.job_apply_link || '').toLowerCase();
+          const isBlocked = BLOCKED_SOURCES.some(b => publisher.includes(b) || applyLink.includes(b));
+          if (isBlocked) return;
+
           const id = `${j.job_title}-${j.employer_name}`.toLowerCase().replace(/\s/g,'');
           if (!seen.has(id)) {
             seen.add(id);
@@ -446,7 +522,10 @@ function renderJobs() {
       </div>
       <div class="job-footer">
         <span class="job-source">${escapeHtml(job.source)}</span>
-        <a href="${escapeHtml(job.url)}" target="_blank" class="apply-btn">Apply →</a>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="tailor-btn" onclick="openResumeBuilder(${allJobs.indexOf(job)})">📄 Tailor Resume</button>
+          <a href="${escapeHtml(job.url)}" target="_blank" class="apply-btn">Apply →</a>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -511,6 +590,329 @@ function shareWhatsApp() {
 
   const encoded = encodeURIComponent(msg);
   window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+// ===== ATS RESUME BUILDER =====
+const SREEJA_RESUME = {
+  name: "SREEJA NARIKODE",
+  contact: "+971 55 4741005 | sreeja.narikode@gmail.com | Dubai, UAE | linkedin.com/in/sreeja-narikode",
+  summary: "CRM & IT Specialist with 6+ years of experience in IT implementation, system analysis, and automation, including 2+ years of hands-on Zoho CRM expertise in the UAE. Proven ability to customize CRM modules, workflows, and automations, integrate CRM with business systems, and support end users through training and troubleshooting. Strong background in Agile project management, stakeholder collaboration, and data-driven process optimization.",
+  skills: [
+    "CRM Strategy & Implementation (Zoho CRM, Bitrix, Salesforce basics, HubSpot basics)",
+    "CRM Workflow Automation, Validation Rules, Blueprints, Custom Functions",
+    "Zoho Suite Integrations: Zoho People, Zoho Payroll, Zoho Analytics, Zoho Creator",
+    "Marketing Automation & Customer Journey Design: Email/SMS Campaigns, Active Campaign, Twilio",
+    "Technical Integrations: REST/SOAP APIs, Webhooks, WhatsApp Integration, Zapier, Make",
+    "Reporting & Analytics: Zoho Analytics, Excel, Power BI (basic), Management Dashboards",
+    "Project Management: Agile, Scrum, Jira, Sprint Planning, Stakeholder Communication",
+    "AI & Automation Tools: Prompt Engineering, ChatGPT Integrations, API Automation",
+    "End-User Training, Onboarding, CRM Adoption, Troubleshooting & Support"
+  ],
+  experience: [
+    {
+      title: "System Analyst",
+      company: "GNet Computer Systems LLC, Dubai, UAE",
+      dates: "May 2024 - October 2025",
+      bullets: [
+        "Implemented, customized, and managed Zoho CRM solutions for high-net-worth and corporate clients across the UAE.",
+        "Designed and configured Zoho CRM modules (Leads, Accounts, Deals, Contacts) aligned with business workflows and sales processes.",
+        "Built custom workflows, automation rules, and validations, reducing manual effort and improving data accuracy.",
+        "Integrated Zoho CRM with Zoho People and Zoho Payroll, streamlining HR operations and reducing administrative processing time by 30%.",
+        "Developed dashboards and management reports to support data-driven decision-making.",
+        "Provided end-user training, onboarding, and ongoing support, ensuring high system adoption and best practices.",
+        "Collaborated with sales, HR, and management teams to enhance client engagement and internal productivity."
+      ]
+    },
+    {
+      title: "System Analyst",
+      company: "CloudifyOps Private Ltd",
+      dates: "June 2022 - September 2022",
+      bullets: [
+        "Facilitated daily scrum meetings and weekly standups, managing sprint backlogs and resolving impediments.",
+        "Coordinated with product owners to ensure delivery of high-quality products meeting stakeholder requirements.",
+        "Conducted agile estimation and planning sessions with clear sprint expectations.",
+        "Communicated project status and progress to stakeholders and management."
+      ]
+    },
+    {
+      title: "QA Analyst",
+      company: "Cisco India Pvt Ltd",
+      dates: "2018 - 2020",
+      bullets: [
+        "Performed JUnit testing for DocCentral modules of Alfresco Document Management System.",
+        "Collaborated with development teams on enterprise document management workflows."
+      ]
+    },
+    {
+      title: "QA Analyst",
+      company: "Capgemini India Pvt Ltd (Client: Hewlett Packard)",
+      dates: "2010 - 2012",
+      bullets: [
+        "Worked on HP's global expense reimbursement tool with manual testing, QTP automation, and LoadRunner performance testing."
+      ]
+    },
+    {
+      title: "Senior Software Engineer",
+      company: "NTT Data Pvt Ltd",
+      dates: "2007 - 2010",
+      bullets: [
+        "Developed, tested, and installed various modules as part of Agile Business Suite product."
+      ]
+    }
+  ],
+  certifications: [
+    "Prompt Engineering Certification - Dubai Centre for Artificial Intelligence",
+    "Understanding AI - DataCamp",
+    "Machine Learning Fundamentals - Google",
+    "Introduction to AI and Machine Learning on Google Cloud - Coursera",
+    "Certified in Selenium Testing - Info Campus, India",
+    "Fundamentals of Digital Marketing - Google Digital Garage"
+  ],
+  education: "Bachelor of Technology (BTech) in Computer Science | Nehru College, Kerala, India | 2002-2006",
+  languages: "English (Fluent) | Hindi (Fluent) | Malayalam (Native)"
+};
+
+let generatedResumeData = null;
+
+function getClaudeKey() {
+  try { return localStorage.getItem('claude_api_key') || ''; } catch(e) { return ''; }
+}
+
+function openResumeBuilder(jobIndex) {
+  const modal = document.getElementById('resumeModal');
+  const descInput = document.getElementById('jobDescInput');
+  const titleSpan = document.getElementById('resumeJobTitle');
+  const savedKey = getClaudeKey();
+  if (savedKey) document.getElementById('claudeKeyInput').value = savedKey;
+
+  if (jobIndex >= 0 && allJobs[jobIndex]) {
+    const job = allJobs[jobIndex];
+    titleSpan.textContent = `— ${job.title} at ${job.company}`;
+    descInput.value = `Job Title: ${job.title}\nCompany: ${job.company}\nLocation: ${job.location}\n${job.employment_type ? 'Type: ' + job.employment_type + '\n' : ''}\n${job.description}`;
+  } else {
+    titleSpan.textContent = '';
+    descInput.value = '';
+  }
+
+  document.getElementById('resumeStatus').className = 'resume-status';
+  document.getElementById('resumePreview').className = 'resume-preview';
+  document.getElementById('downloadBtn').className = 'download-docx-btn';
+  generatedResumeData = null;
+  modal.classList.add('show');
+}
+
+function closeResumeModal() {
+  document.getElementById('resumeModal').classList.remove('show');
+}
+document.getElementById('resumeModal').addEventListener('click', function(e) {
+  if (e.target === this) closeResumeModal();
+});
+
+async function generateResume() {
+  const claudeKey = document.getElementById('claudeKeyInput').value.trim();
+  const jobDesc = document.getElementById('jobDescInput').value.trim();
+  const statusEl = document.getElementById('resumeStatus');
+  const previewEl = document.getElementById('resumePreview');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const genBtn = document.getElementById('generateBtn');
+
+  if (!claudeKey) { alert('Please enter your Anthropic API key.'); return; }
+  if (!jobDesc) { alert('Please paste the job description.'); return; }
+
+  try { localStorage.setItem('claude_api_key', claudeKey); } catch(e) {}
+
+  genBtn.disabled = true;
+  genBtn.textContent = 'Generating...';
+  statusEl.className = 'resume-status show loading';
+  statusEl.innerHTML = '<div class="resume-progress"><div class="spinner"></div><span>Sending to Claude AI... This takes 15-30 seconds.</span></div>';
+  previewEl.className = 'resume-preview';
+  downloadBtn.className = 'download-docx-btn';
+
+  const prompt = `You are an expert ATS resume optimizer. Given the candidate's current resume data and a target job description, create a tailored ATS-optimized resume.
+
+CANDIDATE'S CURRENT RESUME:
+${JSON.stringify(SREEJA_RESUME, null, 2)}
+
+TARGET JOB DESCRIPTION:
+${jobDesc}
+
+INSTRUCTIONS:
+1. Rewrite the professional summary to directly address the job requirements using keywords from the posting.
+2. Reorder and reword the skills section to prioritize skills mentioned in the job description. Add relevant skills the candidate likely has based on their experience, but ONLY if plausible.
+3. Rewrite work experience bullet points to emphasize achievements relevant to this specific job. Use metrics and action verbs. Keep the same companies and dates — do NOT fabricate experience.
+4. Prioritize certifications relevant to this job.
+5. Ensure maximum ATS keyword match by naturally incorporating key terms from the job posting.
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no backticks, no explanation):
+{
+  "targetJobTitle": "the job title being applied for",
+  "summary": "tailored professional summary (3-4 sentences)",
+  "skills": ["skill 1", "skill 2", "...up to 10 most relevant skills"],
+  "experience": [
+    {
+      "title": "job title (can be slightly reworded to match target role terminology)",
+      "company": "company name and location",
+      "dates": "dates",
+      "bullets": ["achievement 1", "achievement 2", "..."]
+    }
+  ],
+  "certifications": ["cert 1", "cert 2"],
+  "atsKeywords": ["keyword1", "keyword2", "...top 15 ATS keywords used"]
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': claudeKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const text = data.content[0].text;
+    generatedResumeData = JSON.parse(text);
+
+    // Show preview
+    statusEl.className = 'resume-status show success';
+    statusEl.innerHTML = `Resume tailored for <strong>${escapeHtml(generatedResumeData.targetJobTitle)}</strong>. ATS keywords matched: <strong>${generatedResumeData.atsKeywords?.length || 0}</strong>. Click Download to get your .docx file.`;
+
+    let preview = `<strong>SREEJA NARIKODE</strong>\n${SREEJA_RESUME.contact}\n\n`;
+    preview += `<h4>PROFESSIONAL SUMMARY</h4>${escapeHtml(generatedResumeData.summary)}\n\n`;
+    preview += `<h4>CORE SKILLS</h4>`;
+    generatedResumeData.skills.forEach(s => { preview += `• ${escapeHtml(s)}\n`; });
+    preview += `\n<h4>WORK EXPERIENCE</h4>`;
+    generatedResumeData.experience.forEach(exp => {
+      preview += `<strong>${escapeHtml(exp.title)}</strong> — ${escapeHtml(exp.company)} (${escapeHtml(exp.dates)})\n`;
+      exp.bullets.forEach(b => { preview += `• ${escapeHtml(b)}\n`; });
+      preview += `\n`;
+    });
+    preview += `<h4>CERTIFICATIONS</h4>`;
+    generatedResumeData.certifications.forEach(c => { preview += `• ${escapeHtml(c)}\n`; });
+    preview += `\n<h4>EDUCATION</h4>${escapeHtml(SREEJA_RESUME.education)}\n`;
+    preview += `\n<h4>LANGUAGES</h4>${escapeHtml(SREEJA_RESUME.languages)}`;
+    preview += `\n\n<h4>ATS KEYWORDS MATCHED</h4>${generatedResumeData.atsKeywords?.map(k => `<span class="skill-tag match" style="margin:2px">${escapeHtml(k)}</span>`).join(' ') || ''}`;
+
+    previewEl.innerHTML = preview;
+    previewEl.className = 'resume-preview show';
+    downloadBtn.className = 'download-docx-btn show';
+
+  } catch (err) {
+    statusEl.className = 'resume-status show error';
+    statusEl.textContent = `Error: ${err.message}. Please check your API key and try again.`;
+  }
+
+  genBtn.disabled = false;
+  genBtn.textContent = 'Generate ATS Resume';
+}
+
+async function downloadDocx() {
+  if (!generatedResumeData) return;
+  const d = generatedResumeData;
+  const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, BorderStyle, LevelFormat } = docx;
+
+  const border = { style: BorderStyle.SINGLE, size: 6, color: '2E75B6', space: 1 };
+
+  const doc = new Document({
+    styles: {
+      default: { document: { run: { font: 'Arial', size: 21 } } },
+      paragraphStyles: [
+        { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { size: 24, bold: true, font: 'Arial', color: '1B3A5C' },
+          paragraph: { spacing: { before: 240, after: 80 }, border: { bottom: border } }
+        },
+      ]
+    },
+    numbering: {
+      config: [{
+        reference: 'bullets',
+        levels: [{ level: 0, format: LevelFormat.BULLET, text: '\u2022', alignment: AlignmentType.LEFT,
+          style: { paragraph: { indent: { left: 720, hanging: 360 } } }
+        }]
+      }]
+    },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840 },
+          margin: { top: 1152, right: 1152, bottom: 1152, left: 1152 }
+        }
+      },
+      children: [
+        // Name
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 40 }, children: [
+          new TextRun({ text: 'SREEJA NARIKODE', bold: true, size: 36, font: 'Arial', color: '1B3A5C' })
+        ]}),
+        // Contact
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [
+          new TextRun({ text: SREEJA_RESUME.contact, size: 18, font: 'Arial', color: '555555' })
+        ]}),
+        // Summary
+        new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun('PROFESSIONAL SUMMARY')] }),
+        new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: d.summary, size: 21, font: 'Arial' })] }),
+        // Skills
+        new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun('CORE SKILLS')] }),
+        ...d.skills.map(s => new Paragraph({
+          numbering: { reference: 'bullets', level: 0 },
+          spacing: { after: 40 },
+          children: [new TextRun({ text: s, size: 21, font: 'Arial' })]
+        })),
+        // Experience
+        new Paragraph({ heading: HeadingLevel.HEADING_1, spacing: { before: 200 }, children: [new TextRun('WORK EXPERIENCE')] }),
+        ...d.experience.flatMap(exp => [
+          new Paragraph({ spacing: { before: 160, after: 20 }, children: [
+            new TextRun({ text: exp.title, bold: true, size: 22, font: 'Arial' })
+          ]}),
+          new Paragraph({ spacing: { after: 40 }, children: [
+            new TextRun({ text: `${exp.company}    ${exp.dates}`, size: 20, font: 'Arial', color: '555555' })
+          ]}),
+          ...exp.bullets.map(b => new Paragraph({
+            numbering: { reference: 'bullets', level: 0 },
+            spacing: { after: 40 },
+            children: [new TextRun({ text: b, size: 21, font: 'Arial' })]
+          }))
+        ]),
+        // Certifications
+        new Paragraph({ heading: HeadingLevel.HEADING_1, spacing: { before: 200 }, children: [new TextRun('CERTIFICATIONS')] }),
+        ...d.certifications.map(c => new Paragraph({
+          numbering: { reference: 'bullets', level: 0 },
+          spacing: { after: 40 },
+          children: [new TextRun({ text: c, size: 21, font: 'Arial' })]
+        })),
+        // Education
+        new Paragraph({ heading: HeadingLevel.HEADING_1, spacing: { before: 200 }, children: [new TextRun('EDUCATION')] }),
+        new Paragraph({ spacing: { after: 40 }, children: [
+          new TextRun({ text: SREEJA_RESUME.education, size: 21, font: 'Arial' })
+        ]}),
+        // Languages
+        new Paragraph({ heading: HeadingLevel.HEADING_1, spacing: { before: 200 }, children: [new TextRun('LANGUAGES')] }),
+        new Paragraph({ children: [
+          new TextRun({ text: SREEJA_RESUME.languages, size: 21, font: 'Arial' })
+        ]}),
+      ]
+    }]
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const jobTitle = d.targetJobTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+  a.href = url;
+  a.download = `Sreeja_Narikode_Resume_${jobTitle}.docx`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ===== INIT =====
